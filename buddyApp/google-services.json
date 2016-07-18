@@ -1,0 +1,58 @@
+{
+  "project_info": {
+    "project_number": "1092054954319",
+    "firebase_url": "https://androtweet-buddy.firebaseio.com",
+    "project_id": "androtweet-buddy",
+    "storage_bucket": "androtweet-buddy.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1092054954319:android:cbb0bd40d40234f5",
+        "android_client_info": {
+          "package_name": "net.androtweet.buddy"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1092054954319-nn1n39350e1aov9dp74960jdl9avj708.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "net.androtweet.buddy",
+            "certificate_hash": "8375196B859FE866F279F59B3EF4A5059435D0E8"
+          }
+        },
+        {
+          "client_id": "1092054954319-s45cp5h7vj93t9sslpk15cgmlpcm52ti.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "net.androtweet.buddy",
+            "certificate_hash": "C38012EFF132680F0E0A87FD0C414D38B737555D"
+          }
+        },
+        {
+          "client_id": "1092054954319-2v8k75udtijfd9d2ru27d43mp65u6b70.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDT1nEK_R1psMkOrnE44j-vNH1rc4qgaMw"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
