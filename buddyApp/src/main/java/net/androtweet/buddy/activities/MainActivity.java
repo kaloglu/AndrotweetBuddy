@@ -2,22 +2,31 @@ package net.androtweet.buddy.activities;
 
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.view.View;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.ValueEventListener;
+
+import net.androtweet.buddy.BuddyApp;
 import net.androtweet.buddy.R;
 import net.androtweet.buddy.adapters.TwitterAccountAdapter;
 import net.androtweet.buddy.base.BaseActivity;
+import net.androtweet.buddy.models.firebase.TwitterAccount;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends BaseActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -58,8 +67,33 @@ public class MainActivity extends BaseActivity
         mLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(mLayoutManager);
 
-        mAdapter = new TwitterAccountAdapter(this);
-        mRecyclerView.setAdapter(mAdapter);
+
+        FirebaseUser loginUser = BuddyApp.getFirebaseAuth().getCurrentUser();
+
+        final List<TwitterAccount> mItemlist = new ArrayList<>();
+        if (loginUser != null) {
+            BuddyApp.getDB().child("twitterAccounts").child(loginUser.getUid()).getRef().addValueEventListener(new ValueEventListener() {
+
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+
+                    TwitterAccount twitterAccount = dataSnapshot.getValue(TwitterAccount.class);
+                    if (mItemlist != null) {
+                        mItemlist.add(twitterAccount);
+                    }
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+
+            });
+            mAdapter = new TwitterAccountAdapter(this, mItemlist);
+            mRecyclerView.setAdapter(mAdapter);
+        }
+
+
     }
 
     @Override

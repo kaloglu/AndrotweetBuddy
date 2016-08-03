@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Message;
+import android.support.design.widget.Snackbar;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -35,27 +36,12 @@ public class TwitterAccountAdapter extends RecyclerView.Adapter<TwitterAccountAd
     private final Context context;
     List<TwitterAccount> mItems;
 
-    public TwitterAccountAdapter(Context context) {
+    public TwitterAccountAdapter(Context context, List<TwitterAccount> mItemlist) {
         super();
         this.context = context;
         mItems = new ArrayList<>();
 
-        FirebaseUser loginUser = BuddyApp.getFirebaseAuth().getCurrentUser();
 
-        BuddyApp.getDB().child("twitterAccounts").getRef().addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-
-//                    TwitterAccount twitterAccount=dataSnapshot.getValue(TwitterAccount.class);
-//                    twitterAccount.getScreenName();
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-
-        });
 
     }
 
