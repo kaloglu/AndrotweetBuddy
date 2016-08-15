@@ -32,11 +32,12 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
 
-import net.androtweet.buddy.BuddyApp;
 import net.androtweet.buddy.R;
-import net.androtweet.buddy.models.User;
 import net.androtweet.buddy.base.BaseActivity;
+import net.androtweet.buddy.models.User;
+import net.androtweet.buddy.services.FirebaseService;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -67,19 +68,28 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
     private Button switchFormActionButton;
     private Button setForgotPassButton;
     private Resources mResources;
-    private FirebaseAuth auth;
+    private FirebaseAuth firebaseAuth;
+    private FirebaseService firebaseService;
+    private DatabaseReference USERS;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login);
-        auth = FirebaseAuth.getInstance();
-        mResources = getResources();
-        setupActionBar();
+    protected void onBackStackEmpty() {
+
+    }
+
+    @Override
+    protected void initializeScreen() {
         // Set up the login form.
+        mLoginFormView = findViewById(R.id.login_form);
+        progressBar = findViewById(R.id.progressBar);
+        signActionButton = (Button) findViewById(R.id.signActionButton);
         inputEmail = (AutoCompleteTextView) findViewById(R.id.email);
-        if (auth.getCurrentUser()!=null)
-            startActivity(new Intent(LoginActivity.this,MainActivity.class));
+        inputPassword = (EditText) findViewById(R.id.password);
+        setForgotPassButton = (Button) findViewById(R.id.setForgotPassButton);
+        switchFormActionButton = (Button) findViewById(R.id.switchFormActionButton);
+
+        if (firebaseAuth.getCurrentUser() != null)
+            startActivity(new Intent(LoginActivity.this, MainActivity.class));
 
         inputEmail.setOnEditorActionListener(new TextView.OnEditorActionListener() { // Click <DONE> on keyboard.
             @Override
@@ -97,39 +107,43 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
                 if (!hasFocus && !isEmailValid(inputEmail.getText().toString().trim())) {
                     inputEmail.setError(getString(R.string.err_invalid_email));
 
-                    Snackbar.make(inputEmail,R.string.err_invalid_email,Snackbar.LENGTH_LONG).show();
+                    Snackbar.make(inputEmail, R.string.err_invalid_email, Snackbar.LENGTH_LONG).show();
                 }
             }
         });
         populateAutoComplete();
 
-        signActionButton = (Button) findViewById(R.id.signActionButton);
-        setForgotPassButton = (Button) findViewById(R.id.setForgotPassButton);
-        switchFormActionButton = (Button) findViewById(R.id.switchFormActionButton);
-
-        inputPassword = (EditText) findViewById(R.id.password);
         inputPassword.setOnEditorActionListener(new TextView.OnEditorActionListener() { // Click <DONE> on keyboard.
             @Override
             public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
                 if (id == R.id.login || id == EditorInfo.IME_NULL) {
-                    signActionButtonClick();
+                    signActionButtonClick(signActionButton);
                     return true;
                 }
                 return false;
             }
         });
 
-        mLoginFormView = findViewById(R.id.login_form);
-        progressBar = findViewById(R.id.progressBar);
+    }
 
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_login);
 
+        firebaseService = buddyApp.getFirebaseService();
+        firebaseAuth = firebaseService.getFirebaseAuth();
+        USERS = firebaseService.getUSERS();
+        mResources = getResources();
+
+        initializeScreen();
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.signActionButton: // Sign Action Button
-                signActionButtonClick();
+                signActionButtonClick((Button) v);
                 break;
             case R.id.switchFormActionButton: // Switch Sign IN or UP button.s
             case R.id.setForgotPassButton: // Reset Password
@@ -147,7 +161,7 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
         return super.onOptionsItemSelected(item);
     }
 
-    private void signActionButtonClick() {
+    private void signActionButtonClick(Button signActionButton) {
         if (signActionButton.getText().equals(mResources.getString(R.string.lbl_registerButton)))
             signUpClickAction();
 
@@ -218,7 +232,7 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
             showProgress(true);
 
             //create user
-            auth.signInWithEmailAndPassword(email, password)
+            firebaseAuth.signInWithEmailAndPassword(email, password)
                     .addOnCompleteListener(LoginActivity.this, new OnCompleteListener<AuthResult>() {
                         @Override
                         public void onComplete(@NonNull Task<AuthResult> task) {
@@ -227,16 +241,16 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
 
                                 Snackbar.make(inputPassword, mResources.getString(R.string.err_auth_failed), Snackbar.LENGTH_LONG).setAction("Action", null).show();
                             } else {
-                                Snackbar.make(inputPassword, mResources.getString(R.string.user_logon), Snackbar.LENGTH_LONG).setAction("Action", null).show();
+                                startActivity(new Intent(getApplicationContext(), MainActivity.class));
                             }
                         }
                     });
         }
     }
+
     private void writeNewUser(String userId, String email) {
         User user = new User(email);
-
-        BuddyApp.getDB().child("users").child(userId).setValue(user);
+        USERS.child(userId).setValue(user);
     }
 
     private void signUpClickAction() {
@@ -274,18 +288,18 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
             showProgress(true);
 
             //create user
-            auth.createUserWithEmailAndPassword(email, password)
+            firebaseAuth.createUserWithEmailAndPassword(email, password)
                     .addOnCompleteListener(LoginActivity.this, new OnCompleteListener<AuthResult>() {
                         @Override
                         public void onComplete(@NonNull Task<AuthResult> task) {
                             showProgress(false);
                             if (!task.isSuccessful()) {
-                                
+
                                 Snackbar.make(inputPassword, mResources.getString(R.string.err_user_registeration_failed) + task.getException().getMessage(), Snackbar.LENGTH_LONG).setAction("Action", null).show();
                             } else {
-                                FirebaseUser firebaseUser = auth.getCurrentUser();
+                                FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
                                 if (firebaseUser != null) {
-                                    writeNewUser(firebaseUser.getUid(),firebaseUser.getEmail());
+                                    writeNewUser(firebaseUser.getUid(), firebaseUser.getEmail());
                                 }
                                 Snackbar.make(inputPassword, MessageFormat.format(mResources.getString(R.string.user_registered), email), Snackbar.LENGTH_LONG).setAction("Action", null).show();
                             }
@@ -320,7 +334,7 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
             showProgress(true);
 
             //create user
-            BuddyApp.getFirebaseAuth().sendPasswordResetEmail(email)
+            firebaseAuth.sendPasswordResetEmail(email)
                     .addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
@@ -338,7 +352,6 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
 
     protected void onResume() {
         super.onResume();
-        showProgress(false);
     }
 
     private void populateAutoComplete() {
@@ -381,17 +394,6 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
             if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 populateAutoComplete();
             }
-        }
-    }
-
-    /**
-     * Set up the {@link android.app.ActionBar}, if the API is available.
-     */
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    private void setupActionBar() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            // Show the Up button in the action bar.
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
     }
 
