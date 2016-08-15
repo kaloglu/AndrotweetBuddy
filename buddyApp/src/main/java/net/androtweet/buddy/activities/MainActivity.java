@@ -1,5 +1,6 @@
 package net.androtweet.buddy.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -7,50 +8,79 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.view.Menu;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.ValueEventListener;
+import com.twitter.sdk.android.Twitter;
+import com.twitter.sdk.android.core.Callback;
+import com.twitter.sdk.android.core.Result;
+import com.twitter.sdk.android.core.TwitterException;
+import com.twitter.sdk.android.core.TwitterSession;
+import com.twitter.sdk.android.core.identity.TwitterAuthClient;
 
-import net.androtweet.buddy.BuddyApp;
 import net.androtweet.buddy.R;
-import net.androtweet.buddy.adapters.TwitterAccountAdapter;
+import net.androtweet.buddy.SplashScreen;
 import net.androtweet.buddy.base.BaseActivity;
+import net.androtweet.buddy.base.BaseFragment;
+import net.androtweet.buddy.fragments.TwitterAccountsFragment;
+import net.androtweet.buddy.fragments.TwitterAccountsFragment2;
+import net.androtweet.buddy.models.AuthTokenModel;
 import net.androtweet.buddy.models.firebase.TwitterAccount;
+import net.androtweet.buddy.services.FirebaseService;
 
-import java.util.ArrayList;
-import java.util.List;
+public class MainActivity extends BaseActivity implements NavigationView.OnNavigationItemSelectedListener {
 
-public class MainActivity extends BaseActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
-
-    private RecyclerView mRecyclerView;
-    private LinearLayoutManager mLayoutManager;
-    private TwitterAccountAdapter mAdapter;
+    private static final String TAG = "Buddy MainActivity";
+    private MainActivity activity;
+    private FloatingActionButton addAccount, fab1, fab2, fab3, fab4;
+    private Animation fabOpen, fabClose, fabClockWise, fabAntiClockWise;
+    private boolean isOpen;
+    private TwitterAuthClient authClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
+
+        initNavigationDrawer();
+        activity = this;
+
+
+        initializeScreen();
+    }
+
+    @Override
+    protected void onBackStackEmpty() {
+
+    }
+
+    @Override
+    protected void initializeScreen() {
+        addAccount = (FloatingActionButton) findViewById(R.id.addAccount);
+        fab1 = (FloatingActionButton) findViewById(R.id.fab1);
+        fab2 = (FloatingActionButton) findViewById(R.id.fab2);
+        fab3 = (FloatingActionButton) findViewById(R.id.fab3);
+        fab4 = (FloatingActionButton) findViewById(R.id.fab4);
+        fabOpen = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_open);
+        fabClose = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_close);
+        fabClockWise = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.rotate_clockwise);
+        fabAntiClockWise = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.rotate_anticlockwise);
+
+        fab1.setOnClickListener(new fabOnClickListener());
+
+        addAccount.setOnClickListener(new LoginClickListener());
+
+        startFragment(new TwitterAccountsFragment());
+    }
+
+    private void initNavigationDrawer() {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
-
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -59,41 +89,6 @@ public class MainActivity extends BaseActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-
-        mRecyclerView = (RecyclerView) findViewById(R.id.account_list);
-        assert mRecyclerView != null;
-
-        mRecyclerView.setHasFixedSize(true);
-        mLayoutManager = new LinearLayoutManager(this);
-        mRecyclerView.setLayoutManager(mLayoutManager);
-
-
-        FirebaseUser loginUser = BuddyApp.getFirebaseAuth().getCurrentUser();
-
-        final List<TwitterAccount> mItemlist = new ArrayList<>();
-        if (loginUser != null) {
-            BuddyApp.getDB().child("twitterAccounts").child(loginUser.getUid()).getRef().addValueEventListener(new ValueEventListener() {
-
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-
-                    TwitterAccount twitterAccount = dataSnapshot.getValue(TwitterAccount.class);
-                    if (mItemlist != null) {
-                        mItemlist.add(twitterAccount);
-                    }
-                }
-
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
-
-                }
-
-            });
-            mAdapter = new TwitterAccountAdapter(this, mItemlist);
-            mRecyclerView.setAdapter(mAdapter);
-        }
-
-
     }
 
     @Override
@@ -106,35 +101,18 @@ public class MainActivity extends BaseActivity
         }
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
+        BaseFragment fragment = null;
+        Class fragmentClass = null;
+        fragmentClass = TwitterAccountsFragment.class;
+
         if (id == R.id.nav_camera) {
+            fragmentClass = TwitterAccountsFragment2.class;
             // Handle the camera action
         } else if (id == R.id.nav_gallery) {
 
@@ -145,11 +123,100 @@ public class MainActivity extends BaseActivity
         } else if (id == R.id.nav_share) {
 
         } else if (id == R.id.nav_send) {
-
+            FirebaseService.getInstance().getFirebaseAuth().signOut();
+            startActivity(new Intent(activity,SplashScreen.class));
+            finish();
+        }
+        try {
+            fragment = (BaseFragment) fragmentClass.newInstance();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
+        startFragment(fragment);
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    private class fabOnClickListener implements View.OnClickListener {
+        @Override
+        public void onClick(View view) {
+            Animation animOpenOrClose = isOpen ? fabClose : fabOpen;
+            Animation animClockOrAntiwise = isOpen ? fabAntiClockWise : fabClockWise;
+            isOpen = !isOpen;
+
+            addAccount.startAnimation(animOpenOrClose);
+            fab2.startAnimation(animOpenOrClose);
+            fab3.startAnimation(animOpenOrClose);
+            fab4.startAnimation(animOpenOrClose);
+
+            fab1.startAnimation(animClockOrAntiwise);
+
+            fab2.setClickable(isOpen);
+            fab3.setClickable(isOpen);
+            fab4.setClickable(isOpen);
+        }
+    }
+
+    private class LoginClickListener implements View.OnClickListener {
+
+        @Override
+        public void onClick(View view) {
+            Twitter.logIn(activity, new TwitterSessionCallback());
+        }
+
+    }
+
+    private class TwitterSessionCallback extends Callback<TwitterSession> {
+        @Override
+        public void success(Result<TwitterSession> result) {
+            Log.d(TAG, "success: " + result.data);
+            TwitterSession session = result.data;
+            TwitterAccount userAccount = new TwitterAccount();
+            userAccount.setAccountId(String.valueOf(session.getUserId()));
+            userAccount.setScreenName(session.getUserName());
+            userAccount.setAuthToken(new AuthTokenModel(session.getAuthToken()));
+            updateAccountInfo(userAccount);
+
+            TwitterAccountsFragment twitterAccountFragment = new TwitterAccountsFragment();
+            startFragment(twitterAccountFragment);
+        }
+
+        @Override
+        public void failure(TwitterException exception) {
+            Snackbar.make(fab1, "Buddy Session Callback: " + exception.getMessage(), Snackbar.LENGTH_LONG).show();
+        }
+    }
+
+    // [START basic_write]
+    private void updateAccountInfo(TwitterAccount userAccount) {
+        TWITTER_ACCOUNTS.child(logonUser.getUid()).child(userAccount.getAccountId()).setValue(userAccount);
+    }
+
+    private void signOut() {
+        Twitter.logOut();
+    }
+
+    TwitterAuthClient getTwitterAuthClient() {
+        if (authClient == null) {
+            synchronized (FloatingActionButton.class) {
+                if (authClient == null) {
+                    authClient = new TwitterAuthClient();
+                }
+            }
+        }
+        return authClient;
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        // Pass the activity result to the Twitter login button.
+//        addAccount.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == getTwitterAuthClient().getRequestCode()) {
+            getTwitterAuthClient().onActivityResult(requestCode, resultCode, data);
+        }
     }
 }

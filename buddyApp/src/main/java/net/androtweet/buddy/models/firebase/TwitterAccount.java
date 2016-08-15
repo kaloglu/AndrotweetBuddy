@@ -1,33 +1,45 @@
 package net.androtweet.buddy.models.firebase;
 
+import com.google.firebase.database.Exclude;
+
+import net.androtweet.buddy.models.AuthTokenModel;
+
 import java.io.Serializable;
 
 /**
  * Created by kaloglu on 01/08/16.
  */
 public class TwitterAccount implements Serializable {
-    private String twştterUserId;
+    @Exclude
+    private String accountId;
     private String screenName;
-    private String secret;
-    private String token;
+    private AuthTokenModel authToken;
+
+    public AuthTokenModel getAuthToken() {
+        return authToken;
+    }
 
     public TwitterAccount() {
     }
 
-    public String getTwştterUserId() {
-        return twştterUserId;
+    public String getAccountId() {
+        return accountId;
     }
 
     public String getScreenName() {
         return screenName;
     }
 
-    public String getSecret() {
-        return secret;
+    public void setAccountId(String accountId) {
+        this.accountId = accountId;
     }
 
-    public String getToken() {
-        return token;
+    public void setAuthToken(AuthTokenModel authToken) {
+        this.authToken = authToken;
+    }
+
+    public void setScreenName(String screenName) {
+        this.screenName = screenName;
     }
 
 }

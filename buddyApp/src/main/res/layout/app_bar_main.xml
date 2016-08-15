@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context="net.androtweet.buddy.activities.MainActivity">
+    tools:context=".activities.MainActivity">
 
     <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
@@ -23,12 +23,64 @@
 
     <include layout="@layout/content_main" />
 
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/fab4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center"
+            android:layout_marginBottom="66dp"
+            android:layout_marginLeft="55dp"
+            android:elevation="6dp"
+            app:pressedTranslationZ="12dp"
+            android:visibility="invisible"
+            android:src="@drawable/ic_retweet" />
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/fab2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center"
+            android:layout_marginRight="55dp"
+            android:layout_marginBottom="66dp"
+            android:elevation="6dp"
+            android:visibility="invisible"
+            app:pressedTranslationZ="12dp"
+            android:src="@drawable/ic_composer" />
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/fab3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center"
+            android:layout_marginBottom="22dp"
+            android:layout_marginLeft="116dp"
+            android:elevation="6dp"
+            android:visibility="invisible"
+            app:pressedTranslationZ="12dp"
+            android:src="@drawable/ic_like" />
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/addAccount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center"
+            android:layout_marginRight="136dp"
+            android:layout_marginBottom="32dp"
+            android:elevation="6dp"
+            android:visibility="invisible"
+            app:pressedTranslationZ="12dp"
+            android:src="@drawable/dgts__ic_success"
+            />
+
     <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fab"
+        android:id="@+id/fab1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="@dimen/standart_margin"
-        android:src="@android:drawable/ic_dialog_email" />
+        android:layout_gravity="bottom|center"
+        android:layout_marginBottom="16dp"
+        android:elevation="6dp"
+        app:pressedTranslationZ="12dp"
+        android:src="@drawable/tw__ic_logo_default" />
+
 
 </android.support.design.widget.CoordinatorLayout>

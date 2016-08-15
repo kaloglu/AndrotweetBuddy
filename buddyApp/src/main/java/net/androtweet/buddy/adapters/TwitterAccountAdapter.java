@@ -1,149 +1,94 @@
 package net.androtweet.buddy.adapters;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Message;
-import android.support.design.widget.Snackbar;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.GenericTypeIndicator;
-import com.google.firebase.database.ValueEventListener;
+import com.twitter.sdk.android.core.models.User;
 
-import net.androtweet.buddy.BuddyApp;
 import net.androtweet.buddy.R;
-import net.androtweet.buddy.models.firebase.TwitterAccount;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.text.MessageFormat;
 import java.util.List;
-import java.util.Map;
 
-public class TwitterAccountAdapter extends RecyclerView.Adapter<TwitterAccountAdapter.ViewHolder> {
+public class TwitterAccountAdapter extends BaseAdapter {
     private final Context context;
-    List<TwitterAccount> mItems;
+    List<User> mItems;
 
-    public TwitterAccountAdapter(Context context, List<TwitterAccount> mItemlist) {
+    public TwitterAccountAdapter(Context context, List<User> mItemlist) {
         super();
         this.context = context;
-        mItems = new ArrayList<>();
-
-
-
+        mItems = mItemlist;
     }
 
     @Override
-    public ViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
-        View v = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.twitter_accounts_view, viewGroup, false);
-        return new ViewHolder(v);
-    }
+    public View getView(int pos, View convertView, ViewGroup viewGroup) {
+        System.out.println("getView " + pos + " " + convertView);
+        ViewHolder viewHolder;
+        if (convertView == null) {
+            LayoutInflater vi = LayoutInflater.from(context);
+            convertView = vi.inflate(R.layout.account_item, null);
 
-    @Override
-    public void onBindViewHolder(ViewHolder viewHolder, int i) {
-        TwitterAccount userAccount = mItems.get(i);
-//        ImageDownloadMessageHandler imageDownloadMessageHandler1 = new ImageDownloadMessageHandler(null, viewHolder.profileImg);
-//        ImageDownlaodThread imageDownlaodThread = new ImageDownlaodThread(imageDownloadMessageHandler1, userAccount.getProfileImageURL());
-//        imageDownlaodThread.start();
-//        ImageDownloadMessageHandler imageDownloadMessageHandler2 = new ImageDownloadMessageHandler(null, viewHolder.profileBanner);
-//        ImageDownlaodThread imageDownlaodThread2 = new ImageDownlaodThread(imageDownloadMessageHandler2, userAccount.getProfileBannerURL());
-//        imageDownlaodThread2.start();
-//        viewHolder.usernameTxt.setText(userAccount.getScreenName());
-//        viewHolder.biographyTxt.setText(userAccount.getDescription());
-//        viewHolder.tweetCount.setText(userAccount.getStatusesCount() + "");
-//        viewHolder.likeCount.setText(userAccount.getFavouritesCount() + "");
-    }
+            viewHolder = new ViewHolder(convertView);
+            convertView.setTag(viewHolder);
+        } else
+            viewHolder = (ViewHolder) convertView.getTag();
 
-    @Override
-    public int getItemCount() {
-        return mItems.size();
+        User twitterUser = getItem(pos);
+
+        setRemoteImage(viewHolder.profileImg, twitterUser.profileImageUrl, "_bigger");
+        if (twitterUser.profileLinkColor != null && !"".equals(twitterUser.profileLinkColor))
+            viewHolder.profileBanner.setBackgroundColor(Color.parseColor("#" + twitterUser.profileLinkColor));
+        viewHolder.usernameTxt.setText(twitterUser.screenName);
+        viewHolder.tweetCount.setText(MessageFormat.format("{0}", twitterUser.statusesCount));
+        viewHolder.likeCount.setText(MessageFormat.format("{0}", twitterUser.favouritesCount));
+        viewHolder.friendsCount.setText(MessageFormat.format("{0}", twitterUser.friendsCount));
+        viewHolder.followersCount.setText(MessageFormat.format("{0}", twitterUser.followersCount));
+
+        return convertView;
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {
 
-        public ImageView profileImg;
-        public TextView usernameTxt, biographyTxt, tweetCount, likeCount;
-        public ImageView profileBanner;
+        public ImageView profileImg, profileBanner;
+        public TextView usernameTxt, tweetCount, likeCount, friendsCount, followersCount;
 
         public ViewHolder(View itemView) {
             super(itemView);
+
             profileImg = (ImageView) itemView.findViewById(R.id.profileImg);
             profileBanner = (ImageView) itemView.findViewById(R.id.profileBanner);
-//            usernameTxt = (TextView) itemView.findViewById(R.id.usernameTxt);
-//            biographyTxt = (TextView) itemView.findViewById(R.id.biograhpyTxt);
-//            tweetCount = (TextView) itemView.findViewById(R.id.tweetCount);
-//            likeCount = (TextView) itemView.findViewById(R.id.likeCount);
+            usernameTxt = (TextView) itemView.findViewById(R.id.userNameTxt);
+            tweetCount = (TextView) itemView.findViewById(R.id.statusesCount);
+            likeCount = (TextView) itemView.findViewById(R.id.likesCount);
+            friendsCount = (TextView) itemView.findViewById(R.id.followingCount);
+            followersCount = (TextView) itemView.findViewById(R.id.followersCount);
+
+        }
+
+    }
+
+    public void setRemoteImage(ImageView profileImg, String profileImageUrl, String size) {
+        if (profileImageUrl != null && !"".equals(profileImageUrl)) {
+            ImageDownloadMessageHandler imageDownloadMessageHandler1 = new ImageDownloadMessageHandler(null, profileImg);
+            ImageDownlaodThread imageDownlaodThread = new ImageDownlaodThread(imageDownloadMessageHandler1, profileImageUrl.replace("_normal", size));
+            imageDownlaodThread.start();
         }
     }
 
-    private class UserSample {
-        private String screenName;
-        private String description;
-        private int statusesCount;
-        private int favouritesCount;
-        private String profileImageURL;
-        private String profileBannerURL;
-
-        public void setScreenName(String screenName) {
-            this.screenName = screenName;
-        }
-
-        public void setDescription(String description) {
-            this.description = description;
-        }
-
-        public void setStatusesCount(int statusesCount) {
-            this.statusesCount = statusesCount;
-        }
-
-        public void setFavouritesCount(int favouritesCount) {
-            this.favouritesCount = favouritesCount;
-        }
-
-        public void setProfileImageURL(String profileImageURL) {
-            this.profileImageURL = profileImageURL;
-        }
-
-        public String getProfileImageURL() {
-            return profileImageURL;
-        }
-
-        public String getScreenName() {
-            return screenName;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-
-        public int getStatusesCount() {
-            return statusesCount;
-        }
-
-        public int getFavouritesCount() {
-            return favouritesCount;
-        }
-
-        public void setProfileBannerURL(String profileBannerURL) {
-            this.profileBannerURL = profileBannerURL;
-        }
-
-        public String getProfileBannerURL() {
-            return profileBannerURL;
-        }
-    }
     public class ImageDownlaodThread extends Thread {
         ImageDownloadMessageHandler imageDownloadMessageHandler;
         String imageUrl;
@@ -163,7 +108,7 @@ public class TwitterAccountAdapter extends RecyclerView.Adapter<TwitterAccountAd
 
     }
 
-    private class ImageDownloadMessageHandler extends Handler {
+    private static class ImageDownloadMessageHandler extends Handler {
         ProgressBar progressBar;
         ImageView imageTextView;
 
@@ -187,11 +132,25 @@ public class TwitterAccountAdapter extends RecyclerView.Adapter<TwitterAccountAd
         try {
             is = (InputStream) new URL(url).getContent();
             d = Drawable.createFromStream(is, "src name");
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
         return d;
     }
+
+    @Override
+    public int getCount() {
+        return mItems.size();
+    }
+
+    @Override
+    public User getItem(int pos) {
+        return mItems.get(pos);
+    }
+
+    @Override
+    public long getItemId(int i) {
+        return 0;
+    }
+
 }

@@ -1,12 +1,13 @@
 package net.androtweet.buddy;
 
 import android.app.Application;
-import android.content.Intent;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
+import com.twitter.sdk.android.Twitter;
+import com.twitter.sdk.android.core.TwitterAuthConfig;
+
+import net.androtweet.buddy.services.FirebaseService;
+
+import io.fabric.sdk.android.Fabric;
 
 /**
  * Created by kaloglu on 24/07/16.
@@ -14,35 +15,28 @@ import com.google.firebase.database.FirebaseDatabase;
 public class BuddyApp extends Application {
 
     private static BuddyApp instance;
-    private static FirebaseAuth auth;
+    private DeepLink deepLink;
 
-    public static DatabaseReference getDB() {
-        return getDB("");
-    }
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        instance = this;
 
-    public static DatabaseReference getDB(String s) {
-        return FirebaseDatabase.getInstance().getReference(s);
+        // Configure Twitter SDK
+        TwitterAuthConfig authConfig = new TwitterAuthConfig("hHFUMp2BBfBZ38ck6K6Grrv7C", "U1RqnR3Zng4tdmvdFBwYqnEzvrNYfYbwKwmOeen7Xu90uWacne");
+        Fabric.with(instance, new Twitter(authConfig));
+
     }
 
     public static BuddyApp getInstance() {
         return instance;
     }
 
-    public static FirebaseAuth getFirebaseAuth() {
-        if (auth==null)
-            auth = FirebaseAuth.getInstance();
-
-        return auth;
+    public DeepLink getDeepLink() {
+        return deepLink;
     }
 
-    public static FirebaseUser getFirebaseUser() {
-        return getFirebaseAuth().getCurrentUser();
-    }
-
-
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        instance = this;
+    public FirebaseService getFirebaseService() {
+        return FirebaseService.getInstance();
     }
 }
