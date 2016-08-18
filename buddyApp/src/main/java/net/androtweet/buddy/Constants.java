@@ -12,6 +12,8 @@ public class Constants {
     public static final String RETWEETS = "Retweets";
     public static final String LIKES = "Likes";
     public static final String TWEET_DETAILS = "Tweets";
+    public static final String OWNER = "Owner";
+    public static final String PREFERENCES = "Preferences";
 
     public static final int MIN_PASSWORD_LENGTH = 6;
 }

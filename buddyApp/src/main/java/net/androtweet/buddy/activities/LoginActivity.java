@@ -36,6 +36,7 @@ import com.google.firebase.database.DatabaseReference;
 
 import net.androtweet.buddy.R;
 import net.androtweet.buddy.base.BaseActivity;
+import net.androtweet.buddy.listeners.ServiceListener;
 import net.androtweet.buddy.models.User;
 import net.androtweet.buddy.services.FirebaseService;
 
@@ -70,7 +71,7 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
     private Resources mResources;
     private FirebaseAuth firebaseAuth;
     private FirebaseService firebaseService;
-    private DatabaseReference USERS;
+    private DatabaseReference ref_USERS;
 
     @Override
     protected void onBackStackEmpty() {
@@ -88,8 +89,9 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
         setForgotPassButton = (Button) findViewById(R.id.setForgotPassButton);
         switchFormActionButton = (Button) findViewById(R.id.switchFormActionButton);
 
-        if (firebaseAuth.getCurrentUser() != null)
-            startActivity(new Intent(LoginActivity.this, MainActivity.class));
+        if (firebaseAuth.getCurrentUser() != null) {
+            getStart();
+        }
 
         inputEmail.setOnEditorActionListener(new TextView.OnEditorActionListener() { // Click <DONE> on keyboard.
             @Override
@@ -126,6 +128,26 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
 
     }
 
+    private void getStart() {
+        buddyApp.fillAccountList(new ServiceListener() {
+            @Override
+            public void onStarted() {
+
+            }
+
+            @Override
+            public void onFinished() {
+                startActivity(new Intent(LoginActivity.this, MainActivity.class));
+
+            }
+
+            @Override
+            public void onFailed() {
+
+            }
+        });
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -133,7 +155,7 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
 
         firebaseService = buddyApp.getFirebaseService();
         firebaseAuth = firebaseService.getFirebaseAuth();
-        USERS = firebaseService.getUSERS();
+        ref_USERS = firebaseService.getRef_USERS();
         mResources = getResources();
 
         initializeScreen();
@@ -241,7 +263,7 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
 
                                 Snackbar.make(inputPassword, mResources.getString(R.string.err_auth_failed), Snackbar.LENGTH_LONG).setAction("Action", null).show();
                             } else {
-                                startActivity(new Intent(getApplicationContext(), MainActivity.class));
+                                getStart();
                             }
                         }
                     });
@@ -250,7 +272,7 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
 
     private void writeNewUser(String userId, String email) {
         User user = new User(email);
-        USERS.child(userId).setValue(user);
+        ref_USERS.child(userId).setValue(user);
     }
 
     private void signUpClickAction() {

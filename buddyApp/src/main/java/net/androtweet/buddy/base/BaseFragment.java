@@ -41,6 +41,7 @@ public abstract class BaseFragment extends Fragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         fragmentCreated(savedInstanceState);
+        initializeScreen();
     }
 
     @Override
@@ -56,7 +57,7 @@ public abstract class BaseFragment extends Fragment {
         context = rootView.getContext();
         this.rootView = rootView;
         onFragmentCreateView();
-        initializeScreen();
+
         return rootView;
     }
 
