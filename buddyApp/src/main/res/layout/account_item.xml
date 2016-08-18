@@ -2,9 +2,10 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
+    android:layout_marginTop="5dp"
     android:background="@drawable/tw__app_info_layout_border"
     android:orientation="vertical"
-    android:padding="6dp">
+    android:padding="2dp">
 
     <FrameLayout
         android:layout_width="match_parent"
@@ -34,16 +35,19 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:layout_margin="6dp"
+        android:layout_marginLeft="1dp"
+        android:layout_marginRight="1dp"
+        android:layout_marginTop="6dp"
         android:text="1234567890123456"
         android:textStyle="bold" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginLeft="2dp"
+        android:layout_marginRight="2dp"
         android:gravity="center"
-        android:orientation="horizontal"
-        android:padding="2dp">
+        android:orientation="horizontal">
 
         <TextView
             android:id="@+id/followingLbl"
@@ -51,7 +55,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Following:"
-            android:textSize="14sp" />
+            android:textSize="13sp" />
 
         <TextView
             android:id="@+id/followingCount"
@@ -60,7 +64,7 @@
             android:layout_weight="1"
             android:gravity="end"
             android:text="9999999"
-            android:textSize="14sp"
+            android:textSize="13sp"
             android:textStyle="bold" />
 
     </LinearLayout>
@@ -68,9 +72,10 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginLeft="2dp"
+        android:layout_marginRight="2dp"
         android:gravity="center"
-        android:orientation="horizontal"
-        android:padding="2dp">
+        android:orientation="horizontal">
 
         <TextView
             android:id="@+id/followersLbl"
@@ -78,7 +83,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Followers:"
-            android:textSize="14sp" />
+            android:textSize="13sp" />
 
         <TextView
             android:id="@+id/followersCount"
@@ -87,7 +92,7 @@
             android:layout_weight="1"
             android:gravity="end"
             android:text="9999999"
-            android:textSize="14sp"
+            android:textSize="13sp"
             android:textStyle="bold" />
 
     </LinearLayout>
@@ -95,18 +100,18 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="horizontal"
-        android:padding="2dp">
+        android:layout_margin="4dp"
+        android:gravity="center|end"
+        android:orientation="horizontal">
 
         <TextView
             android:id="@+id/statusesCount"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_weight="2"
             android:gravity="right"
-            android:text="9999"
-            android:textSize="14sp" />
+            android:text="99999"
+            android:textSize="12sp" />
 
         <ImageView
             android:id="@+id/statusesCountImg"
@@ -119,10 +124,10 @@
             android:id="@+id/likesCount"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_weight="2"
             android:gravity="right"
-            android:text="9999"
-            android:textSize="14sp" />
+            android:text="99999"
+            android:textSize="12sp" />
 
         <ImageView
             android:layout_width="0dp"

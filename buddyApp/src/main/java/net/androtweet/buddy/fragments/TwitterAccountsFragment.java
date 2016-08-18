@@ -4,20 +4,13 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.util.Log;
-import android.view.View;
 import android.widget.GridView;
 
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.ValueEventListener;
 import com.twitter.sdk.android.core.Callback;
 import com.twitter.sdk.android.core.Result;
-import com.twitter.sdk.android.core.TwitterApiClient;
-import com.twitter.sdk.android.core.TwitterAuthToken;
 import com.twitter.sdk.android.core.TwitterException;
-import com.twitter.sdk.android.core.TwitterSession;
 import com.twitter.sdk.android.core.identity.TwitterAuthClient;
 import com.twitter.sdk.android.core.models.User;
 
@@ -25,10 +18,11 @@ import net.androtweet.buddy.BuddyApp;
 import net.androtweet.buddy.R;
 import net.androtweet.buddy.adapters.TwitterAccountAdapter;
 import net.androtweet.buddy.base.BaseFragment;
-import net.androtweet.buddy.models.firebase.TwitterAccount;
+import net.androtweet.buddy.customized.CustomTwitterApiClient;
 import net.androtweet.buddy.services.FirebaseService;
+import net.androtweet.buddy.services.TwitterApiService;
 
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by kaloglu on 11/08/16.
@@ -41,7 +35,7 @@ public class TwitterAccountsFragment extends BaseFragment {
     private FirebaseUser logonUser;
     private TwitterAuthClient authClient;
     private Context context;
-    private DatabaseReference TWITTER_ACCOUNTS;
+    private DatabaseReference ref_TwitterAccounts;
 
     @Override
     protected int setResourceID() {
@@ -50,7 +44,9 @@ public class TwitterAccountsFragment extends BaseFragment {
 
     @Override
     protected void fragmentCreated(Bundle savedInstanceState) {
-
+        BuddyApp buddyApp = BuddyApp.getInstance();
+        logonUser = buddyApp.getFirebaseService().getFirebaseUser();
+        ref_TwitterAccounts = FirebaseService.getRef_TWITTER_ACCOUNTS();
     }
 
     @Override
@@ -65,12 +61,8 @@ public class TwitterAccountsFragment extends BaseFragment {
 
     @Override
     protected void initializeScreen() {
-        BuddyApp buddyApp = BuddyApp.getInstance();
-        logonUser = buddyApp.getFirebaseService().getFirebaseUser();
-        TWITTER_ACCOUNTS = FirebaseService.getInstance().getTWITTER_ACCOUNTS();
         assert getView() != null;
         mGridView = (GridView) getView().findViewById(R.id.account_list);
-
         updateUI();
 
     }
@@ -78,48 +70,20 @@ public class TwitterAccountsFragment extends BaseFragment {
     private void updateUI() {
 //        hideProgressDialog();
         if (logonUser != null) {
-            final ArrayList<User> mItemlist = new ArrayList<>();
-            TWITTER_ACCOUNTS.child(logonUser.getUid()).getRef().addValueEventListener(new ValueEventListener() {
+            CustomTwitterApiClient twitterApiClient = new TwitterApiService(BuddyApp.getInstance().getOwnerAccount()).getApiClient();
+            twitterApiClient.getUserService().lookup(BuddyApp.getInstance().getTwitterAccountIdList(), false, new Callback<List<User>>() {
 
                 @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-                    mItemlist.clear();
-                    for (DataSnapshot dataSnap : dataSnapshot.getChildren()) {
-                        TwitterAccount twitterAccount = dataSnap.getValue(TwitterAccount.class);
-                        twitterAccount.setAccountId(dataSnap.getKey());
-                        TwitterAuthToken twitterAuthToken = new TwitterAuthToken(twitterAccount.getAuthToken().getToken(), twitterAccount.getAuthToken().getSecret());
-                        TwitterSession session = new TwitterSession(twitterAuthToken, Long.parseLong(twitterAccount.getAccountId()), twitterAccount.getScreenName());
-                        new TwitterApiClient(session).getAccountService().verifyCredentials(false, false, new Callback<User>() {
-                            @Override
-                            public void success(Result<User> result) {
-                                mItemlist.add(result.data);
-                                mAdapter.notifyDataSetChanged();
-                            }
-
-                            @Override
-                            public void failure(TwitterException exception) {
-                                Snackbar snackBar = Snackbar.make(mGridView, "Error: " + exception.getMessage(), Snackbar.LENGTH_LONG);
-                                snackBar.setAction("Dismiss", new View.OnClickListener() {
-                                    @Override
-                                    public void onClick(View view) {
-
-                                    }
-                                }).show();
-                            }
-                        });
-//                        mItemlist.add(twitterAccount);
-                    }
-
+                public void success(Result<List<User>> result) {
+                    mAdapter = new TwitterAccountAdapter(getActivity(), result.data);
+                    mGridView.setAdapter(mAdapter);
                 }
 
                 @Override
-                public void onCancelled(DatabaseError databaseError) {
-                    Log.e(TAG, "onCancelled: " + databaseError.getMessage(), databaseError.toException());
+                public void failure(TwitterException exception) {
+                    Snackbar.make(mGridView, "Error: " + exception.getMessage(), Snackbar.LENGTH_LONG).show();
                 }
-
             });
-            mAdapter = new TwitterAccountAdapter(getActivity(), mItemlist);
-            mGridView.setAdapter(mAdapter);
 
         } else {
             Log.d(TAG, "updateUI: UnAuthorized");

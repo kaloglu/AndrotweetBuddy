@@ -58,8 +58,6 @@ public abstract class BaseActivity extends AppCompatActivity {
         firebaseService = buddyApp.getFirebaseService();
         logonUser = firebaseService.getFirebaseUser();
 
-        TWITTER_ACCOUNTS = firebaseService.getTWITTER_ACCOUNTS();
-
     }
 
     @Override

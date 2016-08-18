@@ -6,18 +6,20 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import net.androtweet.buddy.Constants;
+import net.androtweet.buddy.models.firebase.TwitterAccount;
 
 /**
  * Created by kaloglu on 14/08/16.
  */
 public class FirebaseService {
-    private static DatabaseReference USERS;
-    private static DatabaseReference TWITTER_ACCOUNTS;
-    private static DatabaseReference STATUSES;
-    private static DatabaseReference LIKES;
-    private static DatabaseReference RETWEETS;
-    private static DatabaseReference TWEET_DETAILS;
+    private static DatabaseReference ref_USERS;
+    private static DatabaseReference ref_TWITTER_ACCOUNTS;
+    private static DatabaseReference ref_STATUSES;
+    private static DatabaseReference ref_LIKES;
+    private static DatabaseReference ref_RETWEETS;
+    private static DatabaseReference ref_TWEET_DETAILS;
     private static FirebaseService instance;
+    private static DatabaseReference ref_PREFERENCES;
     private FirebaseDatabase firebaseDatabase;
     private FirebaseAuth firebaseAuth;
 
@@ -36,12 +38,13 @@ public class FirebaseService {
 
     protected FirebaseService() {
         firebaseDatabase = FirebaseServiceHelper.firebaseDatabase;
-        USERS = getDatabaseReference(Constants.USERS);
-        TWITTER_ACCOUNTS = getDatabaseReference(Constants.TWITTER_ACCOUNTS);
-        STATUSES = getDatabaseReference(Constants.STATUSES);
-        LIKES = getDatabaseReference(Constants.LIKES);
-        RETWEETS = getDatabaseReference(Constants.RETWEETS);
-        TWEET_DETAILS = getDatabaseReference(Constants.TWEET_DETAILS);
+        ref_USERS = getDatabaseReference(Constants.USERS);
+        ref_TWITTER_ACCOUNTS = getDatabaseReference(Constants.TWITTER_ACCOUNTS);
+        ref_PREFERENCES = getDatabaseReference(Constants.PREFERENCES);
+        ref_STATUSES = getDatabaseReference(Constants.STATUSES);
+        ref_LIKES = getDatabaseReference(Constants.LIKES);
+        ref_RETWEETS = getDatabaseReference(Constants.RETWEETS);
+        ref_TWEET_DETAILS = getDatabaseReference(Constants.TWEET_DETAILS);
     }
 
     public DatabaseReference getDatabaseReference() {
@@ -63,31 +66,36 @@ public class FirebaseService {
         return getFirebaseAuth().getCurrentUser();
     }
 
-    public DatabaseReference getTWITTER_ACCOUNTS() {
-        return TWITTER_ACCOUNTS;
+    public DatabaseReference getRef_LIKES() {
+        return ref_LIKES;
     }
 
-    public DatabaseReference getLIKES() {
-        return LIKES;
+    public DatabaseReference getRef_OWNER() {
+        return ref_PREFERENCES.child(Constants.OWNER);
     }
 
-    public DatabaseReference getRETWEETS() {
-        return RETWEETS;
+    public DatabaseReference getRef_RETWEETS() {
+        return ref_RETWEETS;
     }
 
-    public DatabaseReference getSTATUSES() {
-        return STATUSES;
+    public DatabaseReference getRef_STATUSES() {
+        return ref_STATUSES;
     }
 
-    public DatabaseReference getTWEET_DETAILS() {
-        return TWEET_DETAILS;
+    public DatabaseReference getRef_TWEET_DETAILS() {
+        return ref_TWEET_DETAILS;
     }
 
-    public DatabaseReference getTwitterAccounts() {
-        return TWITTER_ACCOUNTS;
+    public static DatabaseReference getRef_TWITTER_ACCOUNTS() {
+        return ref_TWITTER_ACCOUNTS;
     }
 
-    public DatabaseReference getUSERS() {
-        return USERS;
+    public DatabaseReference getRef_USERS() {
+        return ref_USERS;
+    }
+
+    // [START basic_write]
+    public static void updateAccountInfo(FirebaseUser logonUser, TwitterAccount userAccount) {
+        getRef_TWITTER_ACCOUNTS().child(logonUser.getUid()).child(userAccount.getAccountId()).setValue(userAccount);
     }
 }

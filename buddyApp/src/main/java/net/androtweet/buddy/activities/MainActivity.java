@@ -28,6 +28,7 @@ import net.androtweet.buddy.base.BaseActivity;
 import net.androtweet.buddy.base.BaseFragment;
 import net.androtweet.buddy.fragments.TwitterAccountsFragment;
 import net.androtweet.buddy.fragments.TwitterAccountsFragment2;
+import net.androtweet.buddy.listeners.ServiceListener;
 import net.androtweet.buddy.models.AuthTokenModel;
 import net.androtweet.buddy.models.firebase.TwitterAccount;
 import net.androtweet.buddy.services.FirebaseService;
@@ -43,15 +44,46 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.activity_main);
-
-        initNavigationDrawer();
         activity = this;
 
+        setContentView(R.layout.activity_main);
+        initNavigationDrawer();
+        buddyApp.fillAccountList(new ServiceListener() {
+            @Override
+            public void onStarted() {
+                showProgressDialog();
+            }
 
-        initializeScreen();
+            @Override
+            public void onFinished() {
+                buddyApp.defineOwner(new ServiceListener() {
+                    @Override
+                    public void onStarted() {
+                    }
+
+                    @Override
+                    public void onFinished() {
+                        initializeScreen();
+                        hideProgressDialog();
+                    }
+
+                    @Override
+                    public void onFailed() {
+                        hideProgressDialog();
+                    }
+                });
+            }
+
+            @Override
+            public void onFailed() {
+                hideProgressDialog();
+            }
+        });
+
+
     }
 
     @Override
@@ -124,7 +156,7 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
 
         } else if (id == R.id.nav_send) {
             FirebaseService.getInstance().getFirebaseAuth().signOut();
-            startActivity(new Intent(activity,SplashScreen.class));
+            startActivity(new Intent(activity, SplashScreen.class));
             finish();
         }
         try {
@@ -177,7 +209,9 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
             userAccount.setAccountId(String.valueOf(session.getUserId()));
             userAccount.setScreenName(session.getUserName());
             userAccount.setAuthToken(new AuthTokenModel(session.getAuthToken()));
-            updateAccountInfo(userAccount);
+
+            FirebaseService.updateAccountInfo(logonUser, userAccount);
+            buddyApp.addTwitterAccountList(userAccount);
 
             TwitterAccountsFragment twitterAccountFragment = new TwitterAccountsFragment();
             startFragment(twitterAccountFragment);
@@ -187,11 +221,6 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
         public void failure(TwitterException exception) {
             Snackbar.make(fab1, "Buddy Session Callback: " + exception.getMessage(), Snackbar.LENGTH_LONG).show();
         }
-    }
-
-    // [START basic_write]
-    private void updateAccountInfo(TwitterAccount userAccount) {
-        TWITTER_ACCOUNTS.child(logonUser.getUid()).child(userAccount.getAccountId()).setValue(userAccount);
     }
 
     private void signOut() {
